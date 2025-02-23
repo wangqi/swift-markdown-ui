@@ -1,12 +1,33 @@
 import MarkdownUI
 import SwiftUI
+import WebKit
 
 struct LatexView: View {
   private let content = """
-    This is an inline equation: $$V_{sphere} = \frac{4}{3}\pi r^3$$,<br>
-    followed by a display style equation:
+    # LaTeX Math Examples
 
-    $$V_{sphere} = \frac{4}{3}\pi r^3$$
+    ## Basic Math
+    Here's a quadratic formula: $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$
+
+    ## Calculus
+    The derivative definition:
+    $$\\lim_{h \\to 0} \\frac{f(x + h) - f(x)}{h}$$
+
+    ## Linear Algebra
+    A matrix equation:
+    $$\\begin{bmatrix} a & b \\\\ c & d \\end{bmatrix} \\begin{bmatrix} x \\\\ y \\end{bmatrix} = \\begin{bmatrix} r \\\\ s \\end{bmatrix}$$
+
+    ## Statistics
+    The normal distribution:
+    $$f(x) = \\frac{1}{\\sigma\\sqrt{2\\pi}} e^{-\\frac{(x-\\mu)^2}{2\\sigma^2}}$$
+
+    ## Physics
+    Einstein's energy-mass equivalence:
+    $$E = mc^2$$
+
+    ## Complex Analysis
+    Euler's formula:
+    $$e^{ix} = \\cos x + i\\sin x$$
     """
 
   var body: some View {

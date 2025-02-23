@@ -55,11 +55,11 @@ struct ContentView: View {
             Label("Tables", systemImage: "tablecells")
           }
           NavigationLink {
-              LatexView()
-                .navigationTitle("LaTeX")
-                .navigationBarTitleDisplayMode(.inline)
+            LatexView()
+              .navigationTitle("LaTeX")
+              .navigationBarTitleDisplayMode(.inline)
             } label: {
-              Label("Headings", systemImage: "textformat.size")
+              Label("LaTeX", systemImage: "textformat.size")
           }
         }
         Section("Extensibility") {
