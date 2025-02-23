@@ -75,6 +75,8 @@ extension BlockNode {
       )
     case .thematicBreak:
       self = .thematicBreak
+    case .math:
+      self = .math(content: unsafeNode.literal ?? "")
     default:
       assertionFailure("Unhandled node type '\(unsafeNode.nodeType)' in BlockNode.")
       return nil
@@ -160,6 +162,8 @@ extension InlineNode {
 private typealias UnsafeNode = UnsafeMutablePointer<cmark_node>
 
 extension UnsafeNode {
+
+  
   fileprivate var nodeType: NodeType {
     let typeString = String(cString: cmark_node_get_type_string(self))
     guard let nodeType = NodeType(rawValue: typeString) else {
@@ -235,9 +239,9 @@ extension UnsafeNode {
     let extensionNames: Set<String>
 
     if #available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *) {
-      extensionNames = ["autolink", "strikethrough", "tagfilter", "tasklist", "table"]
+      extensionNames = ["autolink", "strikethrough", "tagfilter", "tasklist", "table", "math"]
     } else {
-      extensionNames = ["autolink", "strikethrough", "tagfilter", "tasklist"]
+      extensionNames = ["autolink", "strikethrough", "tagfilter", "tasklist", "math"]
     }
 
     for extensionName in extensionNames {
@@ -295,6 +299,11 @@ extension UnsafeNode {
       cmark_node_set_list_type(node, CMARK_BULLET_LIST)
       cmark_node_set_list_tight(node, isTight ? 1 : 0)
       items.compactMap(UnsafeNode.make).forEach { cmark_node_append_child(node, $0) }
+      return node
+    case .math(let content):
+      guard let node = cmark_node_new(CMARK_NODE_CUSTOM_BLOCK) else { return nil }
+      cmark_node_set_literal(node, content)
+      cmark_node_set_on_enter(node, "math")
       return node
     case .codeBlock(let fenceInfo, let content):
       guard let node = cmark_node_new(CMARK_NODE_CODE_BLOCK) else { return nil }
@@ -425,6 +434,7 @@ extension UnsafeNode {
 private enum NodeType: String {
   case document
   case blockquote = "block_quote"
+  case math = "math"
   case list
   case item
   case codeBlock = "code_block"

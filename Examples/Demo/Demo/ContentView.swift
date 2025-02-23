@@ -54,6 +54,13 @@ struct ContentView: View {
           } label: {
             Label("Tables", systemImage: "tablecells")
           }
+          NavigationLink {
+              LatexView()
+                .navigationTitle("LaTeX")
+                .navigationBarTitleDisplayMode(.inline)
+            } label: {
+              Label("Headings", systemImage: "textformat.size")
+          }
         }
         Section("Extensibility") {
           NavigationLink {

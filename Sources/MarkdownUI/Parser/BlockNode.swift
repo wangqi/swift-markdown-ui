@@ -11,6 +11,7 @@ enum BlockNode: Hashable {
   case heading(level: Int, content: [InlineNode])
   case table(columnAlignments: [RawTableColumnAlignment], rows: [RawTableRow])
   case thematicBreak
+  case math(content: String)
 }
 
 extension BlockNode {
@@ -24,6 +25,8 @@ extension BlockNode {
       return items.map(\.children).flatMap { $0 }
     case .taskList(_, let items):
       return items.map(\.children).flatMap { $0 }
+    case .math(_):
+      return []
     default:
       return []
     }

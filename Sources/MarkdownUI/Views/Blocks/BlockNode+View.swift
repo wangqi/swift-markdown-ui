@@ -25,6 +25,8 @@ extension BlockNode: View {
       }
     case .thematicBreak:
       ThematicBreakView()
+    case .math(let content):
+      MathBlockView(content: content)
     }
   }
 }
