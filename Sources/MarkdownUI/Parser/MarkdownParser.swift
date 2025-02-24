@@ -4,26 +4,50 @@ import Foundation
 
 extension Array where Element == BlockNode {
   init(markdown: String) {
-    // Preprocess the markdown to handle math delimiters
     var processedMarkdown = markdown
     
-    // Replace block math delimiters $$ with ```math
-    let blockPattern = #"\n\$\$([^$]+)\$\$\n"#
-    let blockReplacement = "\n```math\n$1\n```\n"
-    processedMarkdown = processedMarkdown.replacingOccurrences(
-      of: blockPattern,
-      with: blockReplacement,
-      options: .regularExpression
-    )
+    // Helper function to normalize LaTeX backslashes
+    func normalizeLatex(_ text: String) -> String {
+      // Replace double backslashes with a temporary marker
+      var result = text.replacingOccurrences(of: "\\\\", with: "__DOUBLE_BACKSLASH__")
+      // Replace single backslashes with a single backslash
+      result = result.replacingOccurrences(of: "\\", with: "\\")
+      // Restore double backslashes
+      result = result.replacingOccurrences(of: "__DOUBLE_BACKSLASH__", with: "\\\\")
+      return result
+    }
     
-    // Replace inline math delimiters $ with inline math
-    let inlinePattern = #"\$([^$\n]+)\$"#
-    let inlineReplacement = "\\($1\\)"
-    processedMarkdown = processedMarkdown.replacingOccurrences(
-      of: inlinePattern,
-      with: inlineReplacement,
-      options: .regularExpression
-    )
+    // Replace block math delimiters $$ with ```math
+    if let regex = try? NSRegularExpression(pattern: #"\n\$\$([^$]+?)\$\$\n"#, options: []) {
+      let range = NSRange(processedMarkdown.startIndex..<processedMarkdown.endIndex, in: processedMarkdown)
+      let matches = regex.matches(in: processedMarkdown, options: [], range: range)
+      
+      // Process matches in reverse order to not affect positions of earlier matches
+      for match in matches.reversed() {
+        if let contentRange = Range(match.range(at: 1), in: processedMarkdown) {
+          let content = String(processedMarkdown[contentRange])
+          let normalizedContent = normalizeLatex(content)
+          let replacement = "\n```math\n\(normalizedContent)\n```\n"
+          processedMarkdown = processedMarkdown.replacingCharacters(in: Range(match.range, in: processedMarkdown)!, with: replacement)
+        }
+      }
+    }
+    
+    // Replace inline math delimiters $ with \(...\)
+    if let regex = try? NSRegularExpression(pattern: #"\$([^$\n]+?)\$"#, options: []) {
+      let range = NSRange(processedMarkdown.startIndex..<processedMarkdown.endIndex, in: processedMarkdown)
+      let matches = regex.matches(in: processedMarkdown, options: [], range: range)
+      
+      // Process matches in reverse order to not affect positions of earlier matches
+      for match in matches.reversed() {
+        if let contentRange = Range(match.range(at: 1), in: processedMarkdown) {
+          let content = String(processedMarkdown[contentRange])
+          let normalizedContent = normalizeLatex(content)
+          let replacement = "\\(\(normalizedContent)\\)"
+          processedMarkdown = processedMarkdown.replacingCharacters(in: Range(match.range, in: processedMarkdown)!, with: replacement)
+        }
+      }
+    }
     
     let blocks = UnsafeNode.parseMarkdown(processedMarkdown) { document in
       document.children.compactMap(BlockNode.init(unsafeNode:))
@@ -160,8 +184,8 @@ extension InlineNode {
     case .code:
       let content = unsafeNode.literal ?? ""
       // Check if this is an inline math expression
-      if content.hasPrefix("(") && content.hasSuffix(")") {
-        let mathContent = String(content.dropFirst().dropLast())
+      if content.hasPrefix("\\(") && content.hasSuffix("\\)") {
+        let mathContent = String(content.dropFirst(2).dropLast(2))
         self = .inlineMath(mathContent)
       } else {
         self = .code(content)

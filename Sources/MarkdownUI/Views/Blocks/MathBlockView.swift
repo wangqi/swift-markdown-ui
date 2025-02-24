@@ -7,11 +7,17 @@ struct MathBlockView: View {
     @State private var viewHeight: CGFloat = 100
     
     init(content: String, displayMode: Bool = true) {
-        self.content = content
+        // Normalize backslashes to ensure consistent LaTeX command handling
+        self.content = content.replacingOccurrences(of: "\\\\(", with: "\\(") // Unescape \\( to \(
+                            .replacingOccurrences(of: "\\\\)", with: "\\)") // Unescape \\) to \)
+                            .replacingOccurrences(of: "\\\\", with: "\\") // Normalize double backslashes
         self.displayMode = displayMode
     }
     
     var body: some View {
+        let escapedContent = content.replacingOccurrences(of: "\\", with: "\\\\") // Escape backslashes for JS
+                                   .replacingOccurrences(of: "`", with: "\\`") // Escape backticks
+        
         let htmlContent = """
         <!DOCTYPE html>
         <html>
@@ -39,7 +45,7 @@ struct MathBlockView: View {
             <div id="math"></div>
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
-                    katex.render(`\(content)`, document.getElementById('math'), {
+                    katex.render(`\(escapedContent)`, document.getElementById('math'), {
                         throwOnError: false,
                         displayMode: \(displayMode),
                         output: 'html',

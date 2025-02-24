@@ -11,7 +11,10 @@ struct LatexView: View {
     F(\\omega) = \\int_{-\\infty}^{\\infty} e^{-j\\omega t} f(t)\\,\\mathrm{d}t
     $$
     
-    Inline math: $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$
+    Inline math: 
+    $$
+    x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}
+    $$
 
     ## Basic Math
     Here's a quadratic formula: $ x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a} $
@@ -24,9 +27,9 @@ struct LatexView: View {
 
     ## Linear Algebra
     A matrix equation:
-    ```math
+    $$
     \\begin{bmatrix} a & b \\\\ c & d \\end{bmatrix} \\begin{bmatrix} x \\\\ y \\end{bmatrix} = \\begin{bmatrix} r \\\\ s \\end{bmatrix}
-    ```
+    $$
 
     ## Statistics
     The normal distribution:
