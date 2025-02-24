@@ -5,6 +5,11 @@ import WebKit
 struct LatexView: View {
   private let content = """
     # LaTeX Math Examples
+    
+    ## New Test
+    $$
+    F(\\omega) = \\int_{-\\infty}^{\\infty} e^{-j\\omega t} f(t)\\,\\mathrm{d}t
+    $$
 
     ## Basic Math
     Here's a quadratic formula: $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$

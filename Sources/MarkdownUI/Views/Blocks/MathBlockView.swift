@@ -3,7 +3,13 @@ import WebKit
 
 struct MathBlockView: View {
     let content: String
+    let displayMode: Bool
     @State private var viewHeight: CGFloat = 100
+    
+    init(content: String, displayMode: Bool = true) {
+        self.content = content
+        self.displayMode = displayMode
+    }
     
     var body: some View {
         let htmlContent = """
@@ -35,7 +41,7 @@ struct MathBlockView: View {
                 document.addEventListener('DOMContentLoaded', function() {
                     katex.render(`\(content)`, document.getElementById('math'), {
                         throwOnError: false,
-                        displayMode: true,
+                        displayMode: \(displayMode),
                         output: 'html',
                         trust: true
                     });

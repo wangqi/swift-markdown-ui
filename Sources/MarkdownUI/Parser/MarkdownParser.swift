@@ -152,6 +152,8 @@ extension InlineNode {
         source: unsafeNode.url ?? "",
         children: unsafeNode.children.compactMap(InlineNode.init(unsafeNode:))
       )
+    case .math:
+      self = .inlineMath(unsafeNode.literal ?? "")
     default:
       assertionFailure("Unhandled node type '\(unsafeNode.nodeType)' in InlineNode.")
       return nil
@@ -427,6 +429,14 @@ extension UnsafeNode {
       cmark_node_set_url(node, source)
       children.compactMap(UnsafeNode.make).forEach { cmark_node_append_child(node, $0) }
       return node
+    case .inlineMath(let content):
+      guard let mathExt = cmark_find_syntax_extension("math"),
+            let node = cmark_node_new_with_ext(ExtensionNodeTypes.shared.CMARK_NODE_MATH, mathExt)
+      else {
+        return nil
+      }
+      cmark_node_set_literal(node, content)
+      return node
     }
   }
 }
@@ -500,6 +510,7 @@ private struct ExtensionNodeTypes {
   let CMARK_NODE_TABLE_ROW: cmark_node_type
   let CMARK_NODE_TABLE_CELL: cmark_node_type
   let CMARK_NODE_STRIKETHROUGH: cmark_node_type
+  let CMARK_NODE_MATH: cmark_node_type
 
   static let shared = ExtensionNodeTypes()
 
@@ -519,6 +530,8 @@ private struct ExtensionNodeTypes {
       findNodeType("CMARK_NODE_TABLE_CELL", in: handle) ?? CMARK_NODE_NONE
     self.CMARK_NODE_STRIKETHROUGH =
       findNodeType("CMARK_NODE_STRIKETHROUGH", in: handle) ?? CMARK_NODE_NONE
+    self.CMARK_NODE_MATH =
+      findNodeType("CMARK_NODE_MATH", in: handle) ?? CMARK_NODE_NONE
 
     dlclose(handle)
   }

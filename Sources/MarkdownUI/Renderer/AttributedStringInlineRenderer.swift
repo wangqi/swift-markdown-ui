@@ -49,6 +49,8 @@ private struct AttributedStringInlineRenderer {
       self.renderLineBreak()
     case .code(let content):
       self.renderCode(content)
+    case .inlineMath(let content):
+      self.renderInlineMath(content)
     case .html(let content):
       self.renderHTML(content)
     case .emphasis(let children):
@@ -92,6 +94,10 @@ private struct AttributedStringInlineRenderer {
 
   private mutating func renderCode(_ code: String) {
     self.result += .init(code, attributes: self.textStyles.code.mergingAttributes(self.attributes))
+  }
+
+  private mutating func renderInlineMath(_ content: String) {
+    self.result += .init(content, attributes: self.textStyles.code.mergingAttributes(self.attributes))
   }
 
   private mutating func renderHTML(_ html: String) {

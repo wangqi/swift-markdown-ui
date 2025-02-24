@@ -12,7 +12,11 @@ extension BlockNode: View {
     case .taskList(let isTight, let items):
       TaskListView(isTight: isTight, items: items)
     case .codeBlock(let fenceInfo, let content):
-      CodeBlockView(fenceInfo: fenceInfo, content: content)
+      if fenceInfo == "math" {
+        MathBlockView(content: content, displayMode: true)
+      } else {
+        CodeBlockView(fenceInfo: fenceInfo, content: content)
+      }
     case .htmlBlock(let content):
       ParagraphView(content: content)
     case .paragraph(let content):
@@ -26,7 +30,7 @@ extension BlockNode: View {
     case .thematicBreak:
       ThematicBreakView()
     case .math(let content):
-      MathBlockView(content: content)
+      MathBlockView(content: content, displayMode: true)
     }
   }
 }
