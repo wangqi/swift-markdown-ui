@@ -4,7 +4,28 @@ import Foundation
 
 extension Array where Element == BlockNode {
   init(markdown: String) {
-    let blocks = UnsafeNode.parseMarkdown(markdown) { document in
+    // Preprocess the markdown to handle math delimiters
+    var processedMarkdown = markdown
+    
+    // Replace block math delimiters $$ with ```math
+    let blockPattern = #"\n\$\$([^$]+)\$\$\n"#
+    let blockReplacement = "\n```math\n$1\n```\n"
+    processedMarkdown = processedMarkdown.replacingOccurrences(
+      of: blockPattern,
+      with: blockReplacement,
+      options: .regularExpression
+    )
+    
+    // Replace inline math delimiters $ with inline math
+    let inlinePattern = #"\$([^$\n]+)\$"#
+    let inlineReplacement = "\\($1\\)"
+    processedMarkdown = processedMarkdown.replacingOccurrences(
+      of: inlinePattern,
+      with: inlineReplacement,
+      options: .regularExpression
+    )
+    
+    let blocks = UnsafeNode.parseMarkdown(processedMarkdown) { document in
       document.children.compactMap(BlockNode.init(unsafeNode:))
     }
     self.init(blocks ?? .init())
@@ -58,7 +79,11 @@ extension BlockNode {
         }
       }
     case .codeBlock:
-      self = .codeBlock(fenceInfo: unsafeNode.fenceInfo, content: unsafeNode.literal ?? "")
+      if unsafeNode.fenceInfo == "math" {
+        self = .math(content: unsafeNode.literal ?? "")
+      } else {
+        self = .codeBlock(fenceInfo: unsafeNode.fenceInfo, content: unsafeNode.literal ?? "")
+      }
     case .htmlBlock:
       self = .htmlBlock(content: unsafeNode.literal ?? "")
     case .paragraph:
@@ -133,7 +158,14 @@ extension InlineNode {
     case .lineBreak:
       self = .lineBreak
     case .code:
-      self = .code(unsafeNode.literal ?? "")
+      let content = unsafeNode.literal ?? ""
+      // Check if this is an inline math expression
+      if content.hasPrefix("(") && content.hasSuffix(")") {
+        let mathContent = String(content.dropFirst().dropLast())
+        self = .inlineMath(mathContent)
+      } else {
+        self = .code(content)
+      }
     case .html:
       self = .html(unsafeNode.literal ?? "")
     case .emphasis:

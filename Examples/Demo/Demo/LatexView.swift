@@ -10,15 +10,17 @@ struct LatexView: View {
     $$
     F(\\omega) = \\int_{-\\infty}^{\\infty} e^{-j\\omega t} f(t)\\,\\mathrm{d}t
     $$
+    
+    Inline math: $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$
 
     ## Basic Math
-    Here's a quadratic formula: $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$
+    Here's a quadratic formula: $ x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a} $
 
     ## Calculus
     The derivative definition:
-    ```math
+    $$
     \\lim_{h \\to 0} \\frac{f(x + h) - f(x)}{h}
-    ```
+    $$
 
     ## Linear Algebra
     A matrix equation:
@@ -28,18 +30,18 @@ struct LatexView: View {
 
     ## Statistics
     The normal distribution:
-    ```math
+    $$
     f(x) = \\frac{1}{\\sigma\\sqrt{2\\pi}} e^{-\\frac{(x-\\mu)^2}{2\\sigma^2}}
-    ```
+    $$
 
     ## Physics
     Einstein's energy-mass equivalence: $E = mc^2$
 
     ## Complex Analysis
     Euler's formula:
-    ```math
+    $$
     e^{ix} = \\cos x + i\\sin x
-    ```
+    $$
 
     """
 
