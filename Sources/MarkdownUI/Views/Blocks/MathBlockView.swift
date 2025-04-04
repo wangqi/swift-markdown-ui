@@ -1,6 +1,17 @@
 import SwiftUI
 import WebKit
 
+#if canImport(UIKit)
+import UIKit
+/// Maps to UIViewRepresentable for iOS
+typealias PlatformViewRepresentable = UIViewRepresentable
+#elseif canImport(AppKit)
+import AppKit
+/// Maps to NSViewRepresentable for macOS
+typealias PlatformViewRepresentable = NSViewRepresentable
+#endif
+
+// MARK: - MathBlockView
 struct MathBlockView: View {
     let content: String
     let displayMode: Bool
@@ -8,15 +19,16 @@ struct MathBlockView: View {
     
     init(content: String, displayMode: Bool = true) {
         // Normalize backslashes to ensure consistent LaTeX command handling
-        self.content = content.replacingOccurrences(of: "\\\\(", with: "\\(") // Unescape \\( to \(
-                            .replacingOccurrences(of: "\\\\)", with: "\\)") // Unescape \\) to \)
-                            .replacingOccurrences(of: "\\\\", with: "\\") // Normalize double backslashes
+        self.content = content.replacingOccurrences(of: "\\\\(", with: "\\(")  // Unescape \\( to \(
+                            .replacingOccurrences(of: "\\\\)", with: "\\)")    // Unescape \\) to \)
+                            .replacingOccurrences(of: "\\\\", with: "\\")      // Normalize double backslashes
         self.displayMode = displayMode
     }
     
     var body: some View {
-        let escapedContent = content.replacingOccurrences(of: "\\", with: "\\\\") // Escape backslashes for JS
-                                   .replacingOccurrences(of: "`", with: "\\`") // Escape backticks
+        let escapedContent = content
+            .replacingOccurrences(of: "\\", with: "\\\\")   // Escape backslashes for JS
+            .replacingOccurrences(of: "`", with: "\\`")      // Escape backticks
         
         let htmlContent = """
         <!DOCTYPE html>
@@ -51,6 +63,7 @@ struct MathBlockView: View {
                         output: 'html',
                         trust: true
                     });
+                    
                     // Send height to Swift
                     const height = document.documentElement.scrollHeight;
                     window.webkit.messageHandlers.heightHandler.postMessage(height);
@@ -68,14 +81,17 @@ struct MathBlockView: View {
     }
 }
 
-struct WebView: UIViewRepresentable {
+// MARK: - WebView
+struct WebView: PlatformViewRepresentable {
     let htmlContent: String
     let onHeightChange: (Double) -> Void
-    
+
     func makeCoordinator() -> Coordinator {
         Coordinator(onHeightChange: onHeightChange)
     }
     
+    // iOS-specific
+    #if canImport(UIKit)
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
         let controller = WKUserContentController()
@@ -89,10 +105,32 @@ struct WebView: UIViewRepresentable {
         return webView
     }
     
-    func updateUIView(_ webView: WKWebView, context: Context) {
-        webView.loadHTMLString(htmlContent, baseURL: nil)
+    func updateUIView(_ uiView: WKWebView, context: Context) {
+        uiView.loadHTMLString(htmlContent, baseURL: nil)
     }
     
+    // macOS-specific
+    #elseif canImport(AppKit)
+    func makeNSView(context: Context) -> WKWebView {
+        let config = WKWebViewConfiguration()
+        let controller = WKUserContentController()
+        controller.add(context.coordinator, name: "heightHandler")
+        config.userContentController = controller
+        
+        let webView = WKWebView(frame: .zero, configuration: config)
+        webView.setValue(false, forKey: "drawsBackground")  // Another way to make background clear on macOS
+#if os(iOS)
+        webView.scrollView.isScrollEnabled = false
+#endif
+        return webView
+    }
+    
+    func updateNSView(_ nsView: WKWebView, context: Context) {
+        nsView.loadHTMLString(htmlContent, baseURL: nil)
+    }
+    #endif
+    
+    // MARK: - Coordinator
     class Coordinator: NSObject, WKScriptMessageHandler {
         let onHeightChange: (Double) -> Void
         
