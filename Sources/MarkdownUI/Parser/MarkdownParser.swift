@@ -34,7 +34,7 @@ extension Array where Element == BlockNode {
       }
     }
     
-    // Replace inline math delimiters $ with \(...\)
+    // Replace inline math delimiters $ with special code blocks that will be recognized as math
     if let regex = try? NSRegularExpression(pattern: #"\$([^$\n]+?)\$"#, options: []) {
       let range = NSRange(processedMarkdown.startIndex..<processedMarkdown.endIndex, in: processedMarkdown)
       let matches = regex.matches(in: processedMarkdown, options: [], range: range)
@@ -44,7 +44,8 @@ extension Array where Element == BlockNode {
         if let contentRange = Range(match.range(at: 1), in: processedMarkdown) {
           let content = String(processedMarkdown[contentRange])
           let normalizedContent = normalizeLatex(content)
-          let replacement = "\\(\(normalizedContent)\\)"
+          // Use inline code with a special marker that we can detect later
+          let replacement = "`math:\(normalizedContent)`"
           processedMarkdown = processedMarkdown.replacingCharacters(in: Range(match.range, in: processedMarkdown)!, with: replacement)
         }
       }
@@ -184,8 +185,12 @@ extension InlineNode {
       self = .lineBreak
     case .code:
       let content = unsafeNode.literal ?? ""
-      // Check if this is an inline math expression
-      if content.hasPrefix("\\(") && content.hasSuffix("\\)") {
+      // Check if this is an inline math expression with our special marker
+      if content.hasPrefix("math:") {
+        let mathContent = String(content.dropFirst(5)) // Remove the "math:" prefix
+        self = .inlineMath(mathContent)
+      } else if content.hasPrefix("\\(") && content.hasSuffix("\\)") {
+        // Also keep the original method for backward compatibility
         let mathContent = String(content.dropFirst(2).dropLast(2))
         self = .inlineMath(mathContent)
       } else {

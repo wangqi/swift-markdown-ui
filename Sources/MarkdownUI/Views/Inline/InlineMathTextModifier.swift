@@ -43,8 +43,8 @@ struct InlineMathTextReplacer: View {
         var index = 0
         
         for run in attributedString.runs {
-            // Access the InlineMathAttribute using the AttributeContainer directly
-            if let mathContent = run.attributes[InlineMathAttribute.self] as? String {
+            // Access the InlineMathAttribute using the AttributeScopes.MarkdownAttributes
+            if let mathContent = run.inlineMath {
                 expressions.append((content: mathContent, index: index))
             }
             index += 1
