@@ -116,6 +116,7 @@ private struct TextInlineRenderer {
     attributedString.mergeAttributes(mathAttributes, mergePolicy: .keepNew)
     
     // Add the attributed string with the special attribute
+    // todo: Finish the inline math rendering. The content is like:  x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}
     self.result = self.result + Text(attributedString)
   }
 

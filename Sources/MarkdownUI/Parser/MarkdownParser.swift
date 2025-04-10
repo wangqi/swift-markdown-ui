@@ -44,7 +44,9 @@ extension Array where Element == BlockNode {
         if let contentRange = Range(match.range(at: 1), in: processedMarkdown) {
           let content = String(processedMarkdown[contentRange])
           let normalizedContent = normalizeLatex(content)
-          let replacement = "\\(\(normalizedContent)\\)"
+          // Use a format that will be recognized as inline math
+          // let replacement = "\\(\(normalizedContent)\\)"
+         let replacement = "`math:\(normalizedContent)`"
           processedMarkdown = processedMarkdown.replacingCharacters(in: Range(match.range, in: processedMarkdown)!, with: replacement)
         }
       }
@@ -185,8 +187,16 @@ extension InlineNode {
     case .code:
       let content = unsafeNode.literal ?? ""
       // Check if this is an inline math expression
+      /*
       if content.hasPrefix("\\(") && content.hasSuffix("\\)") {
         let mathContent = String(content.dropFirst(2).dropLast(2))
+        self = .inlineMath(mathContent)
+      } else {
+        self = .code(content)
+      }
+      */
+      if content.hasPrefix("math:") {
+        let mathContent = String(content.dropFirst(5))
         self = .inlineMath(mathContent)
       } else {
         self = .code(content)
