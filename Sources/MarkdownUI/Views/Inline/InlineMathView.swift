@@ -9,7 +9,6 @@ struct InlineMathView: View {
     
     init(content: String) {
         // Normalize backslashes to ensure consistent LaTeX command handling
-        // This is crucial for proper LaTeX rendering
         self.content = content.replacingOccurrences(of: "\\\\(", with: "\\(")
                             .replacingOccurrences(of: "\\\\)", with: "\\)")
                             .replacingOccurrences(of: "\\\\", with: "\\")
