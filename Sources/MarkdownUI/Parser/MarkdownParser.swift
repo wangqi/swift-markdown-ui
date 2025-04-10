@@ -18,6 +18,7 @@ extension Array where Element == BlockNode {
     }
     
     // Replace block math delimiters $$ with ```math
+    // The regex \$([^$\n]+?)\$ is designed to match inline LaTeX math expressions delimited by single dollar signs ($...$). Here’s a breakdown of what each part does:
     if let regex = try? NSRegularExpression(pattern: #"\n\$\$([^$]+?)\$\$\n"#, options: []) {
       let range = NSRange(processedMarkdown.startIndex..<processedMarkdown.endIndex, in: processedMarkdown)
       let matches = regex.matches(in: processedMarkdown, options: [], range: range)

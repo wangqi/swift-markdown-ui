@@ -60,6 +60,8 @@ private struct TextInlineRenderer {
       self.renderHTML(content)
     case .image(let source, _):
       self.renderImage(source)
+    case .inlineMath(let content):
+      self.renderInlineMath(content)
     default:
       self.defaultRender(inline)
     }
@@ -104,6 +106,17 @@ private struct TextInlineRenderer {
     if let image = self.images[source] {
       self.result = self.result + Text(image)
     }
+  }
+  
+  private mutating func renderInlineMath(_ content: String) {
+    // Create a special attribute for LaTeX content
+    var attributedString = AttributedString("[math]")
+    var mathAttributes = self.attributes
+    mathAttributes.inlineMath = content
+    attributedString.mergeAttributes(mathAttributes, mergePolicy: .keepNew)
+    
+    // Add the attributed string with the special attribute
+    self.result = self.result + Text(attributedString)
   }
 
   private mutating func defaultRender(_ inline: InlineNode) {

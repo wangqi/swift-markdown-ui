@@ -45,6 +45,11 @@ struct LatexView: View {
     $$
     e^{ix} = \\cos x + i\\sin x
     $$
+    
+    ## inline math
+    $a^2 + b^2 = c^2$
+    
+    $\\frac{13}{3} \\approx 4.333...$
 
     """
 
