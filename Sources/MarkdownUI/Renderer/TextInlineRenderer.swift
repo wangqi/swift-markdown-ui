@@ -109,8 +109,11 @@ private struct TextInlineRenderer {
   }
   
   private mutating func renderInlineMath(_ content: String) {
-    // Create a special attribute for LaTeX content
+    // Create a special attribute for LaTeX content with a visible placeholder
+    // The placeholder will be replaced with the actual math rendering
     var attributedString = AttributedString("[math]")
+    
+    // Add the inline math attribute to the attributed string
     var mathAttributes = self.attributes
     mathAttributes.inlineMath = content
     attributedString.mergeAttributes(mathAttributes, mergePolicy: .keepNew)

@@ -219,6 +219,7 @@ public struct Markdown: View {
     .textStyle(self.text)
     .environment(\.baseURL, self.baseURL)
     .environment(\.imageBaseURL, self.imageBaseURL)
+    .renderingInlineMath() // Apply inline math rendering to the entire content
   }
 
   private var blocks: [BlockNode] {
