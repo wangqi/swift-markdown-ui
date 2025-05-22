@@ -16,7 +16,9 @@ extension InlineNode: View {
                 .background(Color(.systemGray6))
                 .cornerRadius(2)
         case .inlineMath(let content):
-            InlineMathText(content: content)
+            InlineMathView(content: content)
+                .padding(.vertical, 2)
+                .padding(.horizontal, 4)
         case .html(let content):
             Text(content)
         case .emphasis(let children):

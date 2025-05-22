@@ -109,15 +109,10 @@ private struct TextInlineRenderer {
   }
   
   private mutating func renderInlineMath(_ content: String) {
-    // Create a special attribute for LaTeX content
-    var attributedString = AttributedString("[math]")
-    var mathAttributes = self.attributes
-    mathAttributes.inlineMath = content
-    attributedString.mergeAttributes(mathAttributes, mergePolicy: .keepNew)
-    
-    // Add the attributed string with the special attribute
-    // todo: Finish the inline math rendering. The content is like:  x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}
-    self.result = self.result + Text(attributedString)
+    // For TextInlineRenderer, we just add a placeholder text
+    // The actual rendering will be handled by CustomInlineRenderer in InlineText.swift
+    // which directly uses InlineMathView for LaTeX content
+    self.result = self.result + Text(content)
   }
 
   private mutating func defaultRender(_ inline: InlineNode) {

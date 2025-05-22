@@ -16,9 +16,12 @@ struct InlineText: View {
   }
 
   var body: some View {
-    TextStyleAttributesReader { attributes in
-      self.inlines.renderText(
-        baseURL: self.baseURL,
+    // Check if there are any inline math nodes
+    if inlines.contains(where: { if case .inlineMath = $0 { return true } else { return false } }) {
+      // If there are inline math nodes, use the custom renderer
+      CustomInlineRenderer(
+        inlines: inlines,
+        baseURL: baseURL,
         textStyles: .init(
           code: self.theme.code,
           emphasis: self.theme.emphasis,
@@ -26,13 +29,32 @@ struct InlineText: View {
           strikethrough: self.theme.strikethrough,
           link: self.theme.link
         ),
-        images: self.inlineImages,
-        softBreakMode: self.softBreakMode,
-        attributes: attributes
+        images: inlineImages,
+        softBreakMode: softBreakMode
       )
-    }
-    .task(id: self.inlines) {
-      self.inlineImages = (try? await self.loadInlineImages()) ?? [:]
+      .task(id: self.inlines) {
+        self.inlineImages = (try? await self.loadInlineImages()) ?? [:]
+      }
+    } else {
+      // If no inline math nodes, use the standard text renderer
+      TextStyleAttributesReader { attributes in
+        self.inlines.renderText(
+          baseURL: self.baseURL,
+          textStyles: .init(
+            code: self.theme.code,
+            emphasis: self.theme.emphasis,
+            strong: self.theme.strong,
+            strikethrough: self.theme.strikethrough,
+            link: self.theme.link
+          ),
+          images: self.inlineImages,
+          softBreakMode: self.softBreakMode,
+          attributes: attributes
+        )
+      }
+      .task(id: self.inlines) {
+        self.inlineImages = (try? await self.loadInlineImages()) ?? [:]
+      }
     }
   }
 
@@ -60,4 +82,43 @@ struct InlineText: View {
       return inlineImages
     }
   }
+}
+
+// MARK: - CustomInlineRenderer
+
+/// A custom renderer that can handle both regular text and LaTeX content
+struct CustomInlineRenderer: View {
+  let inlines: [InlineNode]
+  let baseURL: URL?
+  let textStyles: InlineTextStyles
+  let images: [String: Image]
+  let softBreakMode: SoftBreak.Mode
+  
+  @Environment(\.theme) private var theme
+  
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(Array(inlines.enumerated()), id: \.offset) { _, inline in
+                switch inline {
+                case .inlineMath(let content):
+                    // Render LaTeX content using InlineMathView
+                    InlineMathView(content: content)
+                        .padding(.vertical, 2)
+                        .padding(.horizontal, 4)
+                    
+                default:
+                    // For all other inline nodes, use the standard rendering
+                    TextStyleAttributesReader { attributes in
+                        [inline].renderText(
+                            baseURL: baseURL,
+                            textStyles: textStyles,
+                            images: images,
+                            softBreakMode: softBreakMode,
+                            attributes: attributes
+                        )
+                    }
+                }
+            }
+        }
+    }
 }

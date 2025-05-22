@@ -56,7 +56,7 @@ struct MathContentView: View {
             ForEach(0..<runs.count, id: \.self) { index in
                 let run = runs[index]
                 if let mathContent = run.attributes[InlineMathAttribute.self] as? String {
-                    InlineMathText(content: mathContent)
+                    InlineMathView(content: mathContent)
                 } else {
                     // Create a text view for the non-math content
                     // We'll use a substring approach instead of ranges

@@ -3,147 +3,102 @@ import WebKit
 
 // MARK: - InlineMathView
 struct InlineMathView: View {
-    let content: String
-    @State private var viewHeight: CGFloat = 24
-    @State private var viewWidth: CGFloat = 100
-    
+    @State var latexContent: String
+    @State private var viewHeight: CGFloat = 20 // Default height for inline content
+    @State private var viewWidth: CGFloat = 50 // Optional: if dynamic width is needed
+
     init(content: String) {
-        // Normalize backslashes to ensure consistent LaTeX command handling
-        self.content = content.replacingOccurrences(of: "\\\\(", with: "\\(")
-                            .replacingOccurrences(of: "\\\\)", with: "\\)")
-                            .replacingOccurrences(of: "\\\\", with: "\\")
+        self.latexContent = content
     }
-    
+
     var body: some View {
-        let escapedContent = content
-            .replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "`", with: "\\`")
-        
-        let htmlContent = """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-            <style>
-                body {
-                    margin: 0;
-                    padding: 0;
-                    background-color: transparent;
-                    display: inline-block;
-                }
-                #math {
-                    display: inline-flex;
-                    align-items: center;
-                    min-height: 24px;
-                }
-                .katex { font-size: 1.1em; }
-            </style>
-        </head>
-        <body>
-            <span id="math"></span>
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    katex.render(`\(escapedContent)`, document.getElementById('math'), {
-                        throwOnError: false,
-                        displayMode: false,
-                        output: 'html',
-                        trust: true
-                    });
-                    
-                    // Send dimensions to Swift
-                    const height = document.getElementById('math').offsetHeight;
-                    const width = document.getElementById('math').offsetWidth;
-                    
-                    // Ensure minimum dimensions
-                    const finalHeight = Math.max(height, 24);
-                    const finalWidth = Math.max(width, 50);
-                    
-                    window.webkit.messageHandlers.dimensionsHandler.postMessage({
-                        height: finalHeight,
-                        width: finalWidth
-                    });
-                });
-            </script>
-        </body>
-        </html>
-        """
-        
-        InlineMathWebView(htmlContent: htmlContent, onDimensionsChange: { height, width in
-            viewHeight = CGFloat(height)
-            viewWidth = CGFloat(width)
-        })
-        .frame(width: viewWidth, height: viewHeight)
-        .fixedSize(horizontal: true, vertical: true)
-    }
-}
+        if latexContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            EmptyView()
+        } else {
+            // Escape the LaTeX content for JavaScript
+            // 1. Escape backslashes: \ -> \\
+            // 2. Escape backticks: ` -> \`
+            // 3. Escape single quotes: ' -> \' (optional, but good practice for JS strings)
+            // 4. Escape double quotes: " -> \" (optional, but good practice for JS strings)
+            let escapedContent = latexContent
+                .replacingOccurrences(of: "\\", with: "\\\\")
+                .replacingOccurrences(of: "`", with: "\\`")
+                .replacingOccurrences(of: "'", with: "\\'")
+                .replacingOccurrences(of: "\"", with: "\\\"")
 
-// MARK: - InlineMathWebView
-struct InlineMathWebView: PlatformViewRepresentable {
-    let htmlContent: String
-    let onDimensionsChange: (Double, Double) -> Void
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(onDimensionsChange: onDimensionsChange)
-    }
-    
-    // iOS-specific
-    #if canImport(UIKit)
-    func makeUIView(context: Context) -> WKWebView {
-        let config = WKWebViewConfiguration()
-        let controller = WKUserContentController()
-        controller.add(context.coordinator, name: "dimensionsHandler")
-        config.userContentController = controller
-        
-        let webView = WKWebView(frame: .zero, configuration: config)
-        webView.isOpaque = false
-        webView.backgroundColor = .clear
-        webView.scrollView.isScrollEnabled = false
-        return webView
-    }
-    
-    func updateUIView(_ uiView: WKWebView, context: Context) {
-        uiView.loadHTMLString(htmlContent, baseURL: nil)
-    }
-    
-    // macOS-specific
-    #elseif canImport(AppKit)
-    func makeNSView(context: Context) -> WKWebView {
-        let config = WKWebViewConfiguration()
-        let controller = WKUserContentController()
-        controller.add(context.coordinator, name: "dimensionsHandler")
-        config.userContentController = controller
-        
-        let webView = WKWebView(frame: .zero, configuration: config)
-        webView.setValue(false, forKey: "drawsBackground")
-#if os(iOS)
-        webView.scrollView.isScrollEnabled = false
-#endif
-        return webView
-    }
-    
-    func updateNSView(_ nsView: WKWebView, context: Context) {
-        nsView.loadHTMLString(htmlContent, baseURL: nil)
-    }
-    #endif
-    
-    // MARK: - Coordinator
-    class Coordinator: NSObject, WKScriptMessageHandler {
-        let onDimensionsChange: (Double, Double) -> Void
-        
-        init(onDimensionsChange: @escaping (Double, Double) -> Void) {
-            self.onDimensionsChange = onDimensionsChange
-        }
-        
-        func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-            if message.name == "dimensionsHandler",
-               let dimensions = message.body as? [String: Double],
-               let height = dimensions["height"],
-               let width = dimensions["width"] {
-                onDimensionsChange(height, width)
+            let htmlContent = """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+                <style>
+                    body {
+                        margin: 0;
+                        padding: 0; /* Adjust if needed based on visual output */
+                        background-color: transparent;
+                        display: inline-block; /* Critical for inline flow */
+                    }
+                    .katex { 
+                        font-size: 1em; /* Match surrounding text size */
+                        vertical-align: middle; /* Align with surrounding text */
+                    }
+                    /* KaTeX itself might add .katex-display for block, ensure inline for this view */
+                    .katex-display {
+                        display: inline-block; /* Override if KaTeX tries to make it block */
+                    }
+                    #math {
+                        display: inline-block; /* Ensure the container is inline */
+                        /* No explicit padding here, let KaTeX decide spacing unless issues arise */
+                    }
+                </style>
+            </head>
+            <body>
+                <div id="math"></div>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        try {
+                            katex.render(`\(escapedContent)`, document.getElementById('math'), {
+                                throwOnError: false,
+                                displayMode: false, // Crucial for inline rendering
+                                output: 'html',
+                                trust: true // Consider security implications if content is user-generated
+                            });
+                        } catch (e) {
+                            console.error("KaTeX rendering error:", e);
+                            // Optionally display an error message in the div
+                            document.getElementById('math').innerText = "Error rendering LaTeX";
+                        }
+                        
+                        // Send height to Swift
+                        // Use scrollHeight for dynamically sized content.
+                        // For inline, clientWidth might also be relevant if width needs to be dynamic.
+                        const height = document.documentElement.scrollHeight;
+                        // const width = document.documentElement.scrollWidth; // If width is also needed
+                        window.webkit.messageHandlers.heightHandler.postMessage(height);
+                        // if (window.webkit.messageHandlers.widthHandler) { // If width handler exists
+                        //     window.webkit.messageHandlers.widthHandler.postMessage(width);
+                        // }
+                    });
+                </script>
+            </body>
+            </html>
+            """
+            
+            WebView(htmlContent: htmlContent, onHeightChange: { height in
+                // Add a small buffer if necessary, or ensure CSS is perfect
+                self.viewHeight = CGFloat(height)
             }
+//            , onWidthChange: { width in // Optional: if dynamic width is needed
+//                self.viewWidth = CGFloat(width)
+//            }
+            )
+            .frame(height: viewHeight)
+            //.frame(width: viewWidth, height: viewHeight) // Optional: if dynamic width
+            // For true inline, width should ideally be intrinsic.
+            // If the width is consistently too large or small, CSS adjustments are better.
         }
     }
 }

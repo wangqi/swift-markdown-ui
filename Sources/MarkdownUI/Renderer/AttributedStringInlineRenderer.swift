@@ -99,8 +99,11 @@ private struct AttributedStringInlineRenderer {
   private mutating func renderInlineMath(_ content: String) {
     // Create a special attribute for LaTeX content that can be recognized by text rendering
     var mathAttributes = self.textStyles.code.mergingAttributes(self.attributes)
+    // Store the actual LaTeX here
     mathAttributes.inlineMath = content
     self.result += .init("[math]", attributes: mathAttributes)
+    // Use a zero-width space around MATH as a placeholder.
+    //self.result += AttributedString("\\u{200B}MATH\\u{200B}", attributes: mathAttributes)
   }
 
   private mutating func renderHTML(_ html: String) {
