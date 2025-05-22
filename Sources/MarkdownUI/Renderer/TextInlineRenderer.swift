@@ -60,8 +60,8 @@ private struct TextInlineRenderer {
       self.renderHTML(content)
     case .image(let source, _):
       self.renderImage(source)
-    case .inlineMath(let content):
-      self.renderInlineMath(content)
+    case .inlineMath:
+      self.defaultRender(inline)
     default:
       self.defaultRender(inline)
     }
@@ -107,18 +107,7 @@ private struct TextInlineRenderer {
       self.result = self.result + Text(image)
     }
   }
-  
-  private mutating func renderInlineMath(_ content: String) {
-    // Create a special attribute for LaTeX content
-    var attributedString = AttributedString("[math]")
-    var mathAttributes = self.attributes
-    mathAttributes.inlineMath = content
-    attributedString.mergeAttributes(mathAttributes, mergePolicy: .keepNew)
-    
-    // Add the attributed string with the special attribute
-    // todo: Finish the inline math rendering. The content is like:  x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}
-    self.result = self.result + Text(attributedString)
-  }
+  // Removed renderInlineMath(_ content: String) function
 
   private mutating func defaultRender(_ inline: InlineNode) {
     self.result =

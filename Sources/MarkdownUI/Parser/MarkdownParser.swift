@@ -6,17 +6,6 @@ extension Array where Element == BlockNode {
   init(markdown: String) {
     var processedMarkdown = markdown
     
-    // Helper function to normalize LaTeX backslashes
-    func normalizeLatex(_ text: String) -> String {
-      // Replace double backslashes with a temporary marker
-      var result = text.replacingOccurrences(of: "\\\\", with: "__DOUBLE_BACKSLASH__")
-      // Replace single backslashes with a single backslash
-      result = result.replacingOccurrences(of: "\\", with: "\\")
-      // Restore double backslashes
-      result = result.replacingOccurrences(of: "__DOUBLE_BACKSLASH__", with: "\\\\")
-      return result
-    }
-    
     // Replace block math delimiters $$ with ```math
     // The regex \$([^$\n]+?)\$ is designed to match inline LaTeX math expressions delimited by single dollar signs ($...$). Here’s a breakdown of what each part does:
     if let regex = try? NSRegularExpression(pattern: #"\n\$\$([^$]+?)\$\$\n"#, options: []) {
@@ -27,8 +16,8 @@ extension Array where Element == BlockNode {
       for match in matches.reversed() {
         if let contentRange = Range(match.range(at: 1), in: processedMarkdown) {
           let content = String(processedMarkdown[contentRange])
-          let normalizedContent = normalizeLatex(content)
-          let replacement = "\n```math\n\(normalizedContent)\n```\n"
+          // let normalizedContent = normalizeLatex(content) // Removed normalizeLatex
+          let replacement = "\n```math\n\(content)\n```\n" // Use content directly
           processedMarkdown = processedMarkdown.replacingCharacters(in: Range(match.range, in: processedMarkdown)!, with: replacement)
         }
       }
@@ -43,10 +32,10 @@ extension Array where Element == BlockNode {
       for match in matches.reversed() {
         if let contentRange = Range(match.range(at: 1), in: processedMarkdown) {
           let content = String(processedMarkdown[contentRange])
-          let normalizedContent = normalizeLatex(content)
+          // let normalizedContent = normalizeLatex(content) // Removed normalizeLatex
           // Use a format that will be recognized as inline math
-          // let replacement = "\\(\(normalizedContent)\\)"
-         let replacement = "`math:\(normalizedContent)`"
+          // let replacement = "\\(\(content)\\)" // Use content directly
+         let replacement = "`math:\(content)`" // Use content directly
           processedMarkdown = processedMarkdown.replacingCharacters(in: Range(match.range, in: processedMarkdown)!, with: replacement)
         }
       }

@@ -17,19 +17,52 @@ struct InlineText: View {
 
   var body: some View {
     TextStyleAttributesReader { attributes in
-      self.inlines.renderText(
-        baseURL: self.baseURL,
-        textStyles: .init(
-          code: self.theme.code,
-          emphasis: self.theme.emphasis,
-          strong: self.theme.strong,
-          strikethrough: self.theme.strikethrough,
-          link: self.theme.link
-        ),
-        images: self.inlineImages,
-        softBreakMode: self.softBreakMode,
-        attributes: attributes
+      let textStyles = InlineTextStyles(
+        code: self.theme.code,
+        emphasis: self.theme.emphasis,
+        strong: self.theme.strong,
+        strikethrough: self.theme.strikethrough,
+        link: self.theme.link
       )
+
+      let attributedString = self.inlines.reduce(into: AttributedString()) { result, inlineNode in
+        result.append(
+          inlineNode.renderAttributedString(
+            baseURL: self.baseURL,
+            textStyles: textStyles,
+            softBreakMode: self.softBreakMode,
+            attributes: attributes
+          )
+        )
+      }
+
+      var viewComponents: [AnyView] = []
+      for run in attributedString.runs {
+        if let latexContent = run.inlineMath, !latexContent.isEmpty {
+          viewComponents.append(AnyView(InlineMathView(latexContent: latexContent)))
+        } else {
+          var runAttributedString = AttributedString(String(run.characters)) // Initialize with characters of the run
+          runAttributedString.setAttributes(run.attributes) // Apply all attributes from the run
+
+          let runText = String(run.characters)
+          // Check if the runText is the specific placeholder AND if inlineMath attribute was present for this run
+          // This avoids removing text that coincidentally matches the placeholder but isn't math.
+          let isMathPlaceholder = (runText == "\\u{200B}MATH\\u{200B}" && run.inlineMath != nil)
+          
+          if !isMathPlaceholder && !runText.isEmpty {
+            viewComponents.append(AnyView(Text(runAttributedString)))
+          }
+        }
+      }
+      
+      // Using a simple Group for now as FlowLayout might not be directly available
+      // or its usage might need more context (like horizontal/vertical configuration)
+      // Replace with FlowLayout if it's confirmed to be available and suitable.
+      FlowLayout(spacing: 0) { // Assuming FlowLayout is available and default horizontal flow
+          ForEach(viewComponents.indices, id: \.self) { index in
+              viewComponents[index]
+          }
+      }
     }
     .task(id: self.inlines) {
       self.inlineImages = (try? await self.loadInlineImages()) ?? [:]
