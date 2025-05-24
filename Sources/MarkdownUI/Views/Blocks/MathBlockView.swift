@@ -16,6 +16,7 @@ struct MathBlockView: View {
     let content: String
     let displayMode: Bool
     @State private var viewHeight: CGFloat = 100
+    @Environment(\.colorScheme) private var colorScheme
     
     init(content: String, displayMode: Bool = true) {
         // Normalize backslashes to ensure consistent LaTeX command handling
@@ -39,16 +40,32 @@ struct MathBlockView: View {
             <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
             <style>
+                :root {
+                    --bg-color: #ffffff;
+                    --text-color: #000000;
+                }
+                @media (prefers-color-scheme: dark) {
+                    :root {
+                        --bg-color: #1e1e1e;
+                        --text-color: #ffffff;
+                    }
+                }
                 body {
                     margin: 0;
                     padding: 8px;
                     background-color: transparent;
+                    color: var(--text-color);
                 }
                 #math {
                     display: flex;
                     justify-content: center;
                     align-items: center;
                     min-height: 50px;
+                    background-color: transparent;
+                }
+                .katex { 
+                    color: var(--text-color);
+                    background-color: transparent;
                 }
                 .katex { font-size: 1.1em; }
             </style>
