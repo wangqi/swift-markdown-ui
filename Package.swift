@@ -1,4 +1,4 @@
-// swift-tools-version: 5.7
+// swift-tools-version: 5.9
 
 import PackageDescription
 
@@ -6,7 +6,7 @@ let package = Package(
   name: "swift-markdown-ui",
   platforms: [
     .macOS(.v12),
-    .iOS(.v16),
+    .iOS(.v17),
     .tvOS(.v15),
     .macCatalyst(.v15),
     .watchOS(.v8),
