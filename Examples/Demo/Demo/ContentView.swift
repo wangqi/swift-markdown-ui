@@ -1,9 +1,35 @@
 import SwiftUI
 
 struct ContentView: View {
+  @State private var showTextSelectionTest = false
+  
   var body: some View {
     NavigationView {
-      Form {
+      VStack(spacing: 0) {
+        // Text Selection Test Button (outside of Form)
+        Button(action: {
+          showTextSelectionTest = true
+        }) {
+          HStack {
+            Label("Text Selection Test", systemImage: "text.cursor")
+              .font(.headline)
+            Spacer()
+            Image(systemName: "chevron.right")
+              .foregroundColor(.secondary)
+          }
+          .padding()
+          .background(Color(.systemBackground))
+        }
+        .buttonStyle(PlainButtonStyle())
+        .overlay(
+          Rectangle()
+            .frame(height: 1)
+            .foregroundColor(Color(.systemGray4)),
+          alignment: .bottom
+        )
+        
+        // Main Form with existing content
+        Form {
         Section("Formatting") {
           NavigationLink {
             HeadingsView()
@@ -103,12 +129,17 @@ struct ContentView: View {
         }
       }
       .navigationTitle("MarkdownUI")
+      }
+      .sheet(isPresented: $showTextSelectionTest) {
+        NavigationView {
+            TextSelectionView()
+                .navigationTitle("Text Selection Test")
+                .navigationBarItems(trailing: Button("Done") {
+                    showTextSelectionTest = false
+            })
+        }
+      }
     }
   }
 }
 
-struct ContentView_Previews: PreviewProvider {
-  static var previews: some View {
-    ContentView()
-  }
-}
