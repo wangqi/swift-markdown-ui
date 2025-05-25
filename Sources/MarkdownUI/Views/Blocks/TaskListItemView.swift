@@ -17,6 +17,7 @@ struct TaskListItemView: View {
         content: .init(blocks: item.children)
       )
     )
+    .textSelection(.enabled)
   }
 
   private var label: some View {

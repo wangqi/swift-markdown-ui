@@ -95,6 +95,7 @@ struct MathBlockView: View {
         })
         .frame(height: viewHeight)
         .animation(.easeInOut, value: viewHeight)
+        .textSelection(.enabled)
     }
 }
 

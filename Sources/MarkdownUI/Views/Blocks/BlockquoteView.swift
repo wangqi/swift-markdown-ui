@@ -16,5 +16,6 @@ struct BlockquoteView: View {
         content: .init(block: .blockquote(children: self.children))
       )
     )
+    .textSelection(.enabled)
   }
 }

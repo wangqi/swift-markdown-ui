@@ -20,6 +20,7 @@ struct TableView: View {
         content: .init(block: .table(columnAlignments: self.columnAlignments, rows: self.rows))
       )
     )
+    .textSelection(.enabled)
   }
 
   private var label: some View {

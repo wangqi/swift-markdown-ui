@@ -57,11 +57,13 @@ struct MathContentView: View {
                 let run = runs[index]
                 if let mathContent = run.attributes[InlineMathAttribute.self] as? String {
                     InlineMathView(content: mathContent)
+                        .textSelection(.enabled)
                 } else {
                     // Create a text view for the non-math content
                     // We'll use a substring approach instead of ranges
                     let text = getTextFromRun(run, in: attributedString)
                     Text(text)
+                        .textSelection(.enabled)
                 }
             }
         }

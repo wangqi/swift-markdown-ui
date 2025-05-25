@@ -20,6 +20,7 @@ struct CodeBlockView: View {
         label: .init(self.label)
       )
     )
+    .textSelection(.enabled)
   }
 
   private var label: some View {

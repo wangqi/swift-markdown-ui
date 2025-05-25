@@ -7,7 +7,7 @@ extension Sequence where Element == InlineNode {
     images: [String: Image],
     softBreakMode: SoftBreak.Mode,
     attributes: AttributeContainer
-  ) -> Text {
+  ) -> some View {
     var renderer = TextInlineRenderer(
       baseURL: baseURL,
       textStyles: textStyles,
@@ -16,7 +16,7 @@ extension Sequence where Element == InlineNode {
       attributes: attributes
     )
     renderer.render(self)
-    return renderer.result
+    return renderer.result.textSelection(.enabled)
   }
 }
 

@@ -19,6 +19,7 @@ struct TableBackgroundView: View {
             .fill(self.tableBackgroundStyle.background(row, column))
             .offset(x: bounds.minX, y: bounds.minY)
             .frame(width: bounds.width, height: bounds.height)
+            .textSelection(.enabled)
         }
       }
     }

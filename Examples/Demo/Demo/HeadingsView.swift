@@ -21,9 +21,12 @@ struct HeadingsView: View {
   var body: some View {
     DemoView {
       Markdown(self.content)
+            .textSelection(.enabled)
 
       Section("Customization Example") {
         Markdown("# One Big Header")
+              .textSelection(.enabled)
+
       }
       .markdownBlockStyle(\.heading1) { configuration in
         configuration.label

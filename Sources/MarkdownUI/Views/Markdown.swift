@@ -215,10 +215,12 @@ public struct Markdown: View {
         .foregroundColor(attributes.foregroundColor)
         .background(attributes.backgroundColor)
         .modifier(ScaledFontSizeModifier(attributes.fontProperties?.size))
+        .textSelection(.enabled)
     }
     .textStyle(self.text)
     .environment(\.baseURL, self.baseURL)
     .environment(\.imageBaseURL, self.imageBaseURL)
+    .textSelection(.enabled)
   }
 
   private var blocks: [BlockNode] {

@@ -19,6 +19,7 @@ struct TaskListView: View {
         content: .init(block: .taskList(isTight: self.isTight, items: self.items))
       )
     )
+    .textSelection(.enabled)
   }
 
   private var label: some View {

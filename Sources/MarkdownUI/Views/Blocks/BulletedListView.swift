@@ -20,6 +20,7 @@ struct BulletedListView: View {
         content: .init(block: .bulletedList(isTight: self.isTight, items: self.items))
       )
     )
+    .textSelection(.enabled)
   }
 
   private var label: some View {

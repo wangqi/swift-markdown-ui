@@ -30,6 +30,7 @@ struct NumberedListView: View {
         )
       )
     )
+    .textSelection(.enabled)
   }
 
   private var label: some View {
@@ -44,5 +45,6 @@ struct NumberedListView: View {
     .onColumnWidthChange { columnWidths in
       self.markerWidth = columnWidths[0]
     }
+    .textSelection(.enabled)
   }
 }

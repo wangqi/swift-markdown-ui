@@ -111,6 +111,7 @@ struct InlineMathView: View {
 //            }
             )
             .frame(height: viewHeight)
+            .textSelection(.enabled)
             //.frame(width: viewWidth, height: viewHeight) // Optional: if dynamic width
             // For true inline, width should ideally be intrinsic.
             // If the width is consistently too large or small, CSS adjustments are better.

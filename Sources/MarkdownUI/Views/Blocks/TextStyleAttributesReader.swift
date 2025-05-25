@@ -11,6 +11,7 @@ struct TextStyleAttributesReader<Content: View>: View {
 
   var body: some View {
     self.content(self.attributes)
+          .textSelection(.enabled)
   }
 
   private var attributes: AttributeContainer {

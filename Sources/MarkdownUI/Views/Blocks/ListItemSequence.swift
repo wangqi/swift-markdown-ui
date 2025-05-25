@@ -26,7 +26,9 @@ struct ListItemSequence: View {
         markerStyle: self.markerStyle,
         markerWidth: self.markerWidth
       )
+      .textSelection(.enabled)
     }
     .labelStyle(.titleAndIcon)
+    .textSelection(.enabled)
   }
 }

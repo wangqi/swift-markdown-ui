@@ -24,6 +24,7 @@ struct ParagraphView: View {
         content: .init(block: .paragraph(content: self.content))
       )
     )
+    .textSelection(.enabled)
   }
 
   @ViewBuilder private var label: some View {
@@ -35,6 +36,7 @@ struct ParagraphView: View {
       imageFlow
     } else {
       InlineText(content)
+            .textSelection(.enabled)
     }
   }
 }
