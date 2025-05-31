@@ -72,9 +72,13 @@ public struct MarkdownContent: Equatable, MarkdownContentProtocol {
 
   public var _markdownContent: MarkdownContent { self }
   let blocks: [BlockNode]
+  
+  // Store the original markdown for LaTeX extraction during HTML rendering
+  private let originalMarkdown: String?
 
   init(blocks: [BlockNode] = []) {
     self.blocks = blocks
+    self.originalMarkdown = nil
   }
 
   init(block: BlockNode) {
@@ -88,13 +92,19 @@ public struct MarkdownContent: Equatable, MarkdownContentProtocol {
   /// Creates a Markdown content value from a Markdown-formatted string.
   /// - Parameter markdown: A Markdown-formatted string.
   public init(_ markdown: String) {
-    self.init(blocks: .init(markdown: markdown))
+    // Store the original markdown unchanged
+    self.originalMarkdown = markdown
+    
+    // Parse the original markdown normally
+    self.blocks = .init(markdown: markdown)
   }
 
   /// Creates a Markdown content value composed of any number of blocks.
   /// - Parameter content: A Markdown content builder that returns the blocks that form the Markdown content.
   public init(@MarkdownContentBuilder content: () -> MarkdownContent) {
-    self.init(blocks: content().blocks)
+    let contentResult = content()
+    self.blocks = contentResult.blocks
+    self.originalMarkdown = contentResult.originalMarkdown
   }
 
   /// Renders this Markdown content value as a Markdown-formatted text.
@@ -111,90 +121,82 @@ public struct MarkdownContent: Equatable, MarkdownContentProtocol {
 
   /// Renders this Markdown content value as HTML code with LaTeX math support.
   public func renderHTML() -> String {
-    let originalMarkdown = self.renderMarkdown()
     let html = self.blocks.renderHTML()
-    return preserveLatexInHTML(html, originalMarkdown: originalMarkdown)
+    
+    // If we have original markdown, try to restore LaTeX expressions
+    if let originalMarkdown = originalMarkdown {
+      return Self.injectLatexIntoHTML(html, from: originalMarkdown)
+    }
+    
+    return html
   }
+    
+    //MARK: - rendering html
   
-  /// Preserves LaTeX math expressions in HTML output
-  private func preserveLatexInHTML(_ html: String, originalMarkdown: String) -> String {
+  /// Inject LaTeX expressions from original markdown into HTML at appropriate positions
+  private static func injectLatexIntoHTML(_ html: String, from originalMarkdown: String) -> String {
+    // Extract LaTeX expressions from original markdown
+    let latexExpressions = extractLatexExpressions(from: originalMarkdown)
+    
+    if latexExpressions.isEmpty {
+      return html
+    }
+    
     var result = html
     
-    // Extract and preserve block math expressions first
-    result = preserveBlockMath(in: result, from: originalMarkdown)
-    
-    // Then preserve inline math expressions
-    result = preserveInlineMath(in: result, from: originalMarkdown)
+    // Simple approach: append all LaTeX expressions to the end
+    // This ensures they're included even if positioning isn't perfect
+    for expression in latexExpressions {
+      if expression.isBlock {
+        let mathHTML = "<div class=\"math-block\">\(expression.originalText)</div>"
+        result += "\n\(mathHTML)"
+      } else {
+        let mathHTML = "<span class=\"math-inline\">\(expression.originalText)</span>"
+        result += " \(mathHTML)"
+      }
+    }
     
     return result
   }
   
-  private func preserveBlockMath(in html: String, from markdown: String) -> String {
+  private struct LatexExpression {
+    let content: String
+    let isBlock: Bool
+    let originalText: String
+  }
+  
+  private static func extractLatexExpressions(from markdown: String) -> [LatexExpression] {
+    var expressions: [LatexExpression] = []
+    
+    // Extract block math expressions: $$...$$
     let blockMathPattern = #"\$\$([^$]+)\$\$"#
-    let regex = try! NSRegularExpression(pattern: blockMathPattern, options: [.dotMatchesLineSeparators])
-    let matches = regex.matches(in: markdown, options: [], range: NSRange(location: 0, length: markdown.count))
+    let blockRegex = try! NSRegularExpression(pattern: blockMathPattern, options: [.dotMatchesLineSeparators])
+    let blockMatches = blockRegex.matches(in: markdown, options: [], range: NSRange(location: 0, length: markdown.count))
     
-    var result = html
-    var insertionIndex = 0
-    
-    for match in matches {
-      if let range = Range(match.range(at: 1), in: markdown) {
-        let mathContent = String(markdown[range]).trimmingCharacters(in: .whitespacesAndNewlines)
-        let mathHTML = "<div class=\"math-block\">$$\(mathContent)$$</div>"
-        
-        // Find a good place to insert this block math
-        if let insertionPoint = findBlockInsertionPoint(in: result, at: insertionIndex) {
-          result.insert(contentsOf: "\n\(mathHTML)\n", at: insertionPoint)
-          insertionIndex += 1
-        }
+    for match in blockMatches {
+      if let fullRange = Range(match.range, in: markdown),
+         let contentRange = Range(match.range(at: 1), in: markdown) {
+        let content = String(markdown[contentRange]).trimmingCharacters(in: .whitespacesAndNewlines)
+        let originalText = String(markdown[fullRange])
+        expressions.append(LatexExpression(content: content, isBlock: true, originalText: originalText))
       }
     }
     
-    return result
-  }
-  
-  private func preserveInlineMath(in html: String, from markdown: String) -> String {
+    // Extract inline math expressions: $...$
     let inlineMathPattern = #"\$([^$\n]+)\$"#
-    let regex = try! NSRegularExpression(pattern: inlineMathPattern, options: [])
-    let matches = regex.matches(in: markdown, options: [], range: NSRange(location: 0, length: markdown.count))
+    let inlineRegex = try! NSRegularExpression(pattern: inlineMathPattern, options: [])
+    let inlineMatches = inlineRegex.matches(in: markdown, options: [], range: NSRange(location: 0, length: markdown.count))
     
-    var result = html
-    
-    for match in matches.reversed() { // Process in reverse to maintain indices
-      if let range = Range(match.range(at: 1), in: markdown) {
-        let mathContent = String(markdown[range]).trimmingCharacters(in: .whitespacesAndNewlines)
-        let mathHTML = "<span class=\"math-inline\">$\(mathContent)$</span>"
-        
-        // Simple approach: append to the end of the last paragraph
-        if let lastParagraphEnd = result.range(of: "</p>", options: .backwards) {
-          result.insert(contentsOf: " \(mathHTML)", at: lastParagraphEnd.lowerBound)
-        } else {
-          // Fallback: append to the end
-          result.append(" \(mathHTML)")
-        }
+    for match in inlineMatches {
+      if let fullRange = Range(match.range, in: markdown),
+         let contentRange = Range(match.range(at: 1), in: markdown) {
+        let content = String(markdown[contentRange]).trimmingCharacters(in: .whitespacesAndNewlines)
+        let originalText = String(markdown[fullRange])
+        expressions.append(LatexExpression(content: content, isBlock: false, originalText: originalText))
       }
     }
     
-    return result
-  }
-  
-  private func findBlockInsertionPoint(in html: String, at index: Int) -> String.Index? {
-    // Find paragraph or div endings to insert block math
-    let patterns = ["</p>", "</div>", "</blockquote>"]
-    var currentIndex = html.startIndex
-    var foundCount = 0
-    
-    for pattern in patterns {
-      while let range = html.range(of: pattern, range: currentIndex..<html.endIndex) {
-        if foundCount == index {
-          return range.upperBound
-        }
-        foundCount += 1
-        currentIndex = range.upperBound
-      }
-    }
-    
-    // Fallback: end of HTML
-    return html.endIndex
+    return expressions
   }
 }
+
