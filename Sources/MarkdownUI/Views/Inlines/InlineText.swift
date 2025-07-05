@@ -99,14 +99,12 @@ struct CustomInlineRenderer: View {
   @Environment(\.theme) private var theme
   
     var body: some View {
-        HStack(spacing: 0) {
+        VStack(alignment: .leading, spacing: 2) { // Narrow spacing for inline-as-block
             ForEach(Array(inlines.enumerated()), id: \.offset) { _, inline in
                 switch inline {
                 case .inlineMath(let content):
-                    // Render LaTeX content using InlineMathView
+                    // Render LaTeX content using InlineMathView (now block-style)
                     InlineMathView(content: content)
-                        .padding(.vertical, 2)
-                        .padding(.horizontal, 4)
                         .textSelection(.enabled)
                     
                 default:

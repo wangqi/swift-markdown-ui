@@ -15,9 +15,7 @@ struct LatexView: View {
     $$
     
     Inline math:
-    $$
-    x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}
-    $$
+    It is an inline math expression: $ x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a} $. It is used in many fields.
 
     ## Basic Math
     Here's a quadratic formula: $ x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a} $
@@ -53,6 +51,44 @@ struct LatexView: View {
     $a^2 + b^2 = c^2$
     
     $\\frac{13}{3} \\approx 4.333...$
+    
+    # Physics Equations
+
+      The famous mass-energy equivalence is $E = mc^2$ where $E$ is energy, $m$ is mass, and $c$ is the speed of light.
+
+      For quadratic equations $ax^2 + bx + c = 0$, the solutions are given by:
+
+      $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$
+
+      The area of a circle with radius $r$ is $A = \\pi r^2$. The circumference is $C = 2\\pi r$.
+
+      ## Calculus Examples
+
+      The derivative of $f(x) = x^n$ is $f'(x) = nx^{n-1}$.
+
+      Integration: $\\int x^n dx = \\frac{x^{n+1}}{n+1} + C$ for $n \\neq -1$.
+
+      The fundamental theorem of calculus states that $\\int_a^b f'(x) dx = f(b) - f(a)$.
+
+      ## More Complex Examples
+
+      The Gaussian integral: $\\int_{-\\infty}^{\\infty} e^{-x^2} dx = \\sqrt{\\pi}$
+
+      Euler's identity: $e^{i\\pi} + 1 = 0$ connects five fundamental mathematical constants.
+
+      The probability density function of a normal distribution is $f(x) = \\frac{1}{\\sigma\\sqrt{2\\pi}}
+      e^{-\\frac{1}{2}\\left(\\frac{x-\\mu}{\\sigma}\\right)^2}$.
+
+      Matrix multiplication: If $A$ is an $m \\times n$ matrix and $B$ is an $n \\times p$ matrix, then $(AB)_{ij} = \\sum_{k=1}^{n} A_{ik}B_{kj}$.
+
+      This example contains:
+      - Simple inline math: $E = mc^2$, $A = \\pi r^2$
+      - Complex inline expressions: $\\frac{1}{\\sigma\\sqrt{2\\pi}} e^{-\\frac{1}{2}\\left(\\frac{x-\\mu}{\\sigma}\\right)^2}$
+      - Block math: $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$
+      - Mixed content with text, inline math, and regular formatting
+
+      With your inline-as-block implementation, the inline math expressions should now appear as mini-blocks with narrow spacing instead of
+      creating the table-like column layout you were experiencing before.
 
     """
 

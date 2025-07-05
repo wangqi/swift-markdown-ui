@@ -16,7 +16,7 @@ extension InlineNode: View {
             Text(content)
                 .font(.system(.body, design: .monospaced))
                 .padding(.horizontal, 2)
-                .background(Color(.systemGray6))
+                .background(Color.secondary.opacity(0.15))
                 .cornerRadius(2)
                 .textSelection(.enabled)
         case .inlineMath(let content):
@@ -30,20 +30,30 @@ extension InlineNode: View {
         case .emphasis(let children):
             ForEach(0..<children.count, id: \.self) { index in
                 children[index]
-                    .italic()
+                    .font(.system(.body).italic())
                     .textSelection(.enabled)
             }
         case .strong(let children):
             ForEach(0..<children.count, id: \.self) { index in
                 children[index]
-                    .bold()
+                    .font(.system(.body).bold())
                     .textSelection(.enabled)
             }
         case .strikethrough(let children):
             ForEach(0..<children.count, id: \.self) { index in
-                children[index]
-                    .strikethrough()
-                    .textSelection(.enabled)
+                if #available(iOS 16.0, macOS 13.0, *) {
+                    children[index]
+                        .strikethrough(true)
+                        .textSelection(.enabled)
+                } else {
+                    children[index]
+                        .overlay(
+                            Rectangle()
+                                .frame(height: 1)
+                                .foregroundColor(.primary)
+                        )
+                        .textSelection(.enabled)
+                }
             }
         case .link(let destination, let children):
             Link(destination: URL(string: destination) ?? URL(string: "#")!) {
