@@ -17,6 +17,12 @@ extension Array where Element == BlockNode {
       return result
     }
     
+    // Helper function to detect monetary patterns
+    func isMonetaryPattern(_ content: String) -> Bool {
+      // If content starts with a digit, treat it as monetary (e.g., $1, $150, $90,000)
+      return content.first?.isNumber == true
+    }
+    
     // Replace block math delimiters $$ with ```math
     // The regex \$([^$\n]+?)\$ is designed to match inline LaTeX math expressions delimited by single dollar signs ($...$). Here’s a breakdown of what each part does:
     if let regex = try? NSRegularExpression(pattern: #"\n\$\$([^$]+?)\$\$\n"#, options: []) {
@@ -34,6 +40,9 @@ extension Array where Element == BlockNode {
       }
     }
     
+    // Handle escaped dollar signs first
+    processedMarkdown = processedMarkdown.replacingOccurrences(of: "\\$", with: "ESCAPED_DOLLAR_PLACEHOLDER")
+    
     // Replace inline math delimiters $ with \(...\)
     if let regex = try? NSRegularExpression(pattern: #"\$([^$\n]+?)\$"#, options: []) {
       let range = NSRange(processedMarkdown.startIndex..<processedMarkdown.endIndex, in: processedMarkdown)
@@ -43,6 +52,12 @@ extension Array where Element == BlockNode {
       for match in matches.reversed() {
         if let contentRange = Range(match.range(at: 1), in: processedMarkdown) {
           let content = String(processedMarkdown[contentRange])
+          
+          // Skip if content looks like monetary amounts
+          if isMonetaryPattern(content) {
+            continue
+          }
+          
           let normalizedContent = normalizeLatex(content)
           // Use a format that will be recognized as inline math
           // let replacement = "\\(\(normalizedContent)\\)"
@@ -51,6 +66,9 @@ extension Array where Element == BlockNode {
         }
       }
     }
+    
+    // Restore escaped dollar signs
+    processedMarkdown = processedMarkdown.replacingOccurrences(of: "ESCAPED_DOLLAR_PLACEHOLDER", with: "$")
     
     let blocks = UnsafeNode.parseMarkdown(processedMarkdown) { document in
       document.children.compactMap(BlockNode.init(unsafeNode:))

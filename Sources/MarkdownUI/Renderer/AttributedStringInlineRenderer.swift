@@ -101,7 +101,7 @@ private struct AttributedStringInlineRenderer {
     var mathAttributes = self.textStyles.code.mergingAttributes(self.attributes)
     // Store the actual LaTeX here
     mathAttributes.inlineMath = content
-    self.result += .init("[math]", attributes: mathAttributes)
+    self.result += .init("", attributes: mathAttributes)
     // Use a zero-width space around MATH as a placeholder.
     //self.result += AttributedString("\\u{200B}MATH\\u{200B}", attributes: mathAttributes)
   }

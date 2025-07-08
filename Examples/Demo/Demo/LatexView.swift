@@ -76,8 +76,7 @@ struct LatexView: View {
 
       Euler's identity: $e^{i\\pi} + 1 = 0$ connects five fundamental mathematical constants.
 
-      The probability density function of a normal distribution is $f(x) = \\frac{1}{\\sigma\\sqrt{2\\pi}}
-      e^{-\\frac{1}{2}\\left(\\frac{x-\\mu}{\\sigma}\\right)^2}$.
+      The probability density function of a normal distribution is $f(x) = \\frac{1}{\\sigma\\sqrt{2\\pi}} e^{-\\frac{1}{2}\\left(\\frac{x-\\mu}{\\sigma}\\right)^2}$.
 
       Matrix multiplication: If $A$ is an $m \\times n$ matrix and $B$ is an $n \\times p$ matrix, then $(AB)_{ij} = \\sum_{k=1}^{n} A_{ik}B_{kj}$.
 
