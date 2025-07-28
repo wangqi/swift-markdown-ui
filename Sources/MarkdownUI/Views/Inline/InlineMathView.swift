@@ -24,7 +24,6 @@ struct InlineMathView: View {
             .padding(.horizontal, 2)   // Minimal horizontal padding
             .background(Color.secondary.opacity(0.03)) // Very subtle background
             .cornerRadius(3)          // Slight rounding for distinction
-            .textSelection(.enabled)
         }
     }
 }

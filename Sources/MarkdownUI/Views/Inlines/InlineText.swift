@@ -35,7 +35,6 @@ struct InlineText: View {
       .task(id: self.inlines) {
         self.inlineImages = (try? await self.loadInlineImages()) ?? [:]
       }
-      .textSelection(.enabled)
     } else {
       // If no inline math nodes, use the standard text renderer
       TextStyleAttributesReader { attributes in
@@ -53,7 +52,6 @@ struct InlineText: View {
           attributes: attributes
         )
       }
-      .textSelection(.enabled)
       .task(id: self.inlines) {
         self.inlineImages = (try? await self.loadInlineImages()) ?? [:]
       }
@@ -105,7 +103,6 @@ struct CustomInlineRenderer: View {
                 case .inlineMath(let content):
                     // Render LaTeX content using InlineMathView (now block-style)
                     InlineMathView(content: content)
-                        .textSelection(.enabled)
                     
                 default:
                     // For all other inline nodes, use the standard rendering
@@ -118,7 +115,6 @@ struct CustomInlineRenderer: View {
                             attributes: attributes
                         )
                     }
-                    .textSelection(.enabled)
                 }
             }
         }

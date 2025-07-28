@@ -30,7 +30,6 @@ where
             self.blockMargins[element.hashValue] = value
           }
           .padding(.top, self.topPaddingLength(for: element))
-          .textSelection(.enabled)
       }
     }
   }

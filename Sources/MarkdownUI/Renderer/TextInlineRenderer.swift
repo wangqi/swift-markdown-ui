@@ -16,7 +16,7 @@ extension Sequence where Element == InlineNode {
       attributes: attributes
     )
     renderer.render(self)
-    return renderer.result.textSelection(.enabled)
+    return renderer.result
   }
 }
 

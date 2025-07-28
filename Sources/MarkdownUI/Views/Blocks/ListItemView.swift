@@ -28,7 +28,6 @@ struct ListItemView: View {
         content: .init(blocks: item.children)
       )
     )
-    .textSelection(.enabled)
   }
 
   private var label: some View {
@@ -41,7 +40,6 @@ struct ListItemView: View {
         .readWidth(column: 0)
         .frame(width: self.markerWidth, alignment: .trailing)
     }
-    .textSelection(.enabled)
     #if os(visionOS)
       .labelStyle(BulletItemStyle())
     #endif
@@ -65,6 +63,5 @@ struct BulletItemStyle: LabelStyle {
       configuration.icon
       configuration.title
     }
-    .textSelection(.enabled)
   }
 }

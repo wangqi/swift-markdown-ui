@@ -18,13 +18,22 @@ struct ParagraphView: View {
   }
 
   var body: some View {
-    self.paragraph.makeBody(
-      configuration: .init(
-        label: .init(self.label),
-        content: .init(block: .paragraph(content: self.content))
+    // Check if content is simple enough for selectable rendering
+    if content.isSimpleTextContent {
+      // Use direct rendering without AnyView wrapping
+      InlineText(content)
+        .fixedSize(horizontal: false, vertical: true)
+        .relativeLineSpacing(.em(0.15))
+        .markdownMargin(top: .zero, bottom: .em(1))
+    } else {
+      // Fall back to themed rendering for complex content
+      self.paragraph.makeBody(
+        configuration: .init(
+          label: .init(self.label),
+          content: .init(block: .paragraph(content: self.content))
+        )
       )
-    )
-    .textSelection(.enabled)
+    }
   }
 
   @ViewBuilder private var label: some View {
@@ -36,7 +45,6 @@ struct ParagraphView: View {
       imageFlow
     } else {
       InlineText(content)
-            .textSelection(.enabled)
     }
   }
 }
