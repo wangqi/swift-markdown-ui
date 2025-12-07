@@ -56,14 +56,8 @@ extension InlineNode: View {
                 }
             }
         case .link(let destination, let children):
-            Link(destination: URL(string: destination) ?? URL(string: "#")!) {
-                HStack(spacing: 0) {
-                    ForEach(0..<children.count, id: \.self) { index in
-                        children[index]
-                            .textSelection(.enabled)
-                    }
-                }
-            }
+            // wangqi 2025-12-07: Use LinkView to support custom LinkProvider
+            LinkView(destination: destination, children: children)
         case .image(let source, _):
             AsyncImage(url: URL(string: source)) { phase in
                 switch phase {
@@ -81,6 +75,33 @@ extension InlineNode: View {
                 }
             }
             .frame(maxHeight: 300)
+        }
+    }
+}
+
+// MARK: - LinkView
+// wangqi 2025-12-07: Added LinkView to support custom LinkProvider
+
+/// A view that renders a link using the current LinkProvider from environment
+struct LinkView: View {
+    @Environment(\.linkProvider) private var linkProvider
+    let destination: String
+    let children: [InlineNode]
+
+    var body: some View {
+        if let url = URL(string: destination) {
+            // Extract plain text from children using renderPlainText()
+            let linkText = children.renderPlainText()
+            linkProvider.makeLink(url: url, title: nil, linkText: linkText)
+                .textSelection(.enabled)
+        } else {
+            // Fallback for invalid URLs - render children directly
+            HStack(spacing: 0) {
+                ForEach(0..<children.count, id: \.self) { index in
+                    children[index]
+                        .textSelection(.enabled)
+                }
+            }
         }
     }
 }

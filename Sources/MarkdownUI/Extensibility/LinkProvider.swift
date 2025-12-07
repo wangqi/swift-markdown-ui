@@ -1,49 +1,63 @@
 import SwiftUI
 
-// wangqi 2025-12-07: Added LinkProvider for custom link handling in Markdown
+// wangqi 2025-12-07: Updated LinkProvider to use makeLink returning View for custom link rendering
 
-/// A type that provides custom link handling behavior in a Markdown view.
+/// A type that provides custom link handling for Markdown links.
+///
+/// The protocol uses `linkText: String` instead of `[InlineNode]` to:
+/// 1. Keep InlineNode internal to MarkdownUI (no leaking internal types)
+/// 2. Allow app-side providers to work with simple strings
+/// 3. Keep the API decoupled and simple
 ///
 /// To configure the current link provider for a view hierarchy, use the `markdownLinkProvider(_:)` modifier.
 ///
-/// The following example shows how to configure a custom link provider that opens links in an in-app browser:
+/// The following example shows how to configure a custom link provider:
 ///
 /// ```swift
 /// Markdown {
 ///   "[Visit Apple](https://apple.com)"
 /// }
-/// .markdownLinkProvider(.inAppBrowser)
+/// .markdownLinkProvider(MyCustomLinkProvider())
 /// ```
 public protocol LinkProvider {
-    /// Called when a link is tapped in the Markdown content.
-    ///
+    associatedtype Body: View
+
+    /// Creates a view for the given link.
     /// - Parameters:
-    ///   - url: The URL of the link that was tapped.
-    ///   - title: The display title/text of the link.
-    /// - Returns: `true` if the link was handled, `false` to allow default system handling.
-    func handleLink(url: URL, title: String?) -> Bool
+    ///   - url: The destination URL
+    ///   - title: The link title attribute (from markdown `[text](url "title")`)
+    ///   - linkText: The plain text content of the link (extracted from children)
+    @ViewBuilder func makeLink(
+        url: URL,
+        title: String?,
+        linkText: String
+    ) -> Body
 }
 
-/// Default link provider that uses system URL handling.
+/// Default link provider that uses SwiftUI's Link
 public struct DefaultLinkProvider: LinkProvider {
     public init() {}
 
-    public func handleLink(url: URL, title: String?) -> Bool {
-        // Return false to allow system default handling (open in Safari)
-        return false
+    public func makeLink(url: URL, title: String?, linkText: String) -> some View {
+        Link(destination: url) {
+            Text(linkText)
+                .foregroundColor(.blue)
+        }
     }
 }
 
-/// Type-erased wrapper for LinkProvider
+// Type-erased wrapper (internal to MarkdownUI)
 struct AnyLinkProvider: LinkProvider {
-    private let _handleLink: (URL, String?) -> Bool
+    private let _makeLink: (URL, String?, String) -> AnyView
 
     init<L: LinkProvider>(_ linkProvider: L) {
-        self._handleLink = linkProvider.handleLink
+        self._makeLink = { url, title, linkText in
+            AnyView(linkProvider.makeLink(url: url, title: title, linkText: linkText))
+        }
     }
 
-    func handleLink(url: URL, title: String?) -> Bool {
-        self._handleLink(url, title)
+    func makeLink(url: URL, title: String?, linkText: String) -> some View {
+        self._makeLink(url, title, linkText)
     }
 }
 
@@ -55,7 +69,7 @@ private struct LinkProviderKey: EnvironmentKey {
 
 extension EnvironmentValues {
     /// The link provider for Markdown views in this environment.
-    var markdownLinkProvider: AnyLinkProvider {
+    var linkProvider: AnyLinkProvider {
         get { self[LinkProviderKey.self] }
         set { self[LinkProviderKey.self] = newValue }
     }
@@ -64,14 +78,14 @@ extension EnvironmentValues {
 // MARK: - View Extension
 
 extension View {
-    /// Sets the link provider for Markdown views within this view hierarchy.
+    /// Sets the link provider for Markdown links in a view hierarchy.
     ///
-    /// Use this modifier to customize how links are handled when tapped in Markdown content.
+    /// Use this modifier to customize how links are rendered in Markdown content.
     ///
     /// - Parameter linkProvider: The link provider to use.
     /// - Returns: A view that uses the specified link provider.
     public func markdownLinkProvider<L: LinkProvider>(_ linkProvider: L) -> some View {
-        self.environment(\.markdownLinkProvider, AnyLinkProvider(linkProvider))
+        self.environment(\.linkProvider, AnyLinkProvider(linkProvider))
     }
 }
 
