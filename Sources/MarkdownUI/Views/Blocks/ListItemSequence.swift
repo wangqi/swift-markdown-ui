@@ -19,6 +19,7 @@ struct ListItemSequence: View {
   }
 
   var body: some View {
+    // wangqi 2025-12-10: Removed .labelStyle(.titleAndIcon) - ListItemView uses HStack directly now
     BlockSequence(self.items) { index, item in
       ListItemView(
         item: item,
@@ -28,7 +29,6 @@ struct ListItemSequence: View {
       )
       .textSelection(.enabled)
     }
-    .labelStyle(.titleAndIcon)
     .textSelection(.enabled)
   }
 }

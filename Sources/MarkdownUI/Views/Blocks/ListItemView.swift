@@ -31,20 +31,18 @@ struct ListItemView: View {
     .textSelection(.enabled)
   }
 
+  // wangqi 2025-12-10: Simplified label using HStack directly instead of Label
+  // Reduces view hierarchy depth and eliminates LabelStyle overhead
   private var label: some View {
-    Label {
-      BlockSequence(self.item.children)
-    } icon: {
+    HStack(alignment: .centerOfFirstLine, spacing: 4) {
       self.markerStyle
         .makeBody(configuration: .init(listLevel: self.listLevel, itemNumber: self.number))
         .textStyleFont()
-        .readWidth(column: 0)
+        // wangqi 2025-12-10: Removed .readWidth() - marker width is pre-calculated
         .frame(width: self.markerWidth, alignment: .trailing)
+      BlockSequence(self.item.children)
     }
     .textSelection(.enabled)
-    #if os(visionOS)
-      .labelStyle(BulletItemStyle())
-    #endif
   }
 }
 
@@ -59,12 +57,4 @@ extension VerticalAlignment {
   static let centerOfFirstLine = Self(CenterOfFirstLine.self)
 }
 
-struct BulletItemStyle: LabelStyle {
-  func makeBody(configuration: Configuration) -> some View {
-    HStack(alignment: .centerOfFirstLine, spacing: 4) {
-      configuration.icon
-      configuration.title
-    }
-    .textSelection(.enabled)
-  }
-}
+// wangqi 2025-12-10: BulletItemStyle removed - using HStack directly in ListItemView now
