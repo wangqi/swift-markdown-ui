@@ -19,6 +19,7 @@ struct InlineText: View {
     // Check if there are any inline math nodes
     if inlines.contains(where: { if case .inlineMath = $0 { return true } else { return false } }) {
       // If there are inline math nodes, use the custom renderer
+      // wangqi 2025-12-22: Wrap in frame with leading alignment to prevent centering
       CustomInlineRenderer(
         inlines: inlines,
         baseURL: baseURL,
@@ -32,12 +33,15 @@ struct InlineText: View {
         images: inlineImages,
         softBreakMode: softBreakMode
       )
+      .frame(maxWidth: .infinity, alignment: .leading)
       .task(id: self.inlines) {
         self.inlineImages = (try? await self.loadInlineImages()) ?? [:]
       }
       .textSelection(.enabled)
     } else {
       // If no inline math nodes, use the standard text renderer
+      // wangqi 2025-12-22: Wrap in frame with leading alignment to prevent centering
+      // Text views don't fill width by default, causing them to center when parent has center alignment
       TextStyleAttributesReader { attributes in
         self.inlines.renderText(
           baseURL: self.baseURL,
@@ -52,6 +56,7 @@ struct InlineText: View {
           softBreakMode: self.softBreakMode,
           attributes: attributes
         )
+        .frame(maxWidth: .infinity, alignment: .leading)
       }
       .textSelection(.enabled)
       .task(id: self.inlines) {
@@ -109,6 +114,7 @@ struct CustomInlineRenderer: View {
                     
                 default:
                     // For all other inline nodes, use the standard rendering
+                    // wangqi 2025-12-22: Wrap in frame with leading alignment to prevent centering
                     TextStyleAttributesReader { attributes in
                         [inline].renderText(
                             baseURL: baseURL,
@@ -117,6 +123,7 @@ struct CustomInlineRenderer: View {
                             softBreakMode: softBreakMode,
                             attributes: attributes
                         )
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .textSelection(.enabled)
                 }
