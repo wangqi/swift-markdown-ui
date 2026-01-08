@@ -100,18 +100,31 @@ where
     self.content = content
   }
 
+  @ViewBuilder
   var body: some View {
-    // wangqi 2025-12-10: Use custom Layout for single-pass rendering (iOS 16+)
-    BlockLayout(
-      alignment: self.textAlignment.alignment.horizontal,
-      spacing: self.tightSpacingEnabled ? Self.tightBlockSpacing : Self.defaultBlockSpacing
-    ) {
-      ForEach(self.data, id: \.self) { element in
-        self.content(element.index, element.value)
-          .textSelection(.enabled)
+    // wangqi 2025-12-10: Use custom Layout for single-pass rendering (iOS 16+/macOS 13+)
+    // wangqi 2026-01-08: Added availability check for macOS 12 compatibility
+    if #available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *) {
+      BlockLayout(
+        alignment: self.textAlignment.alignment.horizontal,
+        spacing: self.tightSpacingEnabled ? Self.tightBlockSpacing : Self.defaultBlockSpacing
+      ) {
+        ForEach(self.data, id: \.self) { element in
+          self.content(element.index, element.value)
+            .textSelection(.enabled)
+        }
       }
+      .transaction { $0.disablesAnimations = true }
+    } else {
+      // Fallback for older macOS versions: use VStack
+      VStack(alignment: self.textAlignment.alignment.horizontal, spacing: self.tightSpacingEnabled ? Self.tightBlockSpacing : Self.defaultBlockSpacing) {
+        ForEach(self.data, id: \.self) { element in
+          self.content(element.index, element.value)
+            .textSelection(.enabled)
+        }
+      }
+      .transaction { $0.disablesAnimations = true }
     }
-    .transaction { $0.disablesAnimations = true }
   }
 }
 
